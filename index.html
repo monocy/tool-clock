@@ -39,10 +39,14 @@
   <div class="absolute w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[130px] bottom-[-20%] right-[-10%] pointer-events-none"></div>
 
   <div id="app" v-cloak class="w-full max-w-2xl z-10">
+    <!-- Premium Language Toggle Button -->
+    <button @click="toggleLang" class="absolute top-6 right-6 z-50 glass px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/50">
+      [[ currentLang === 'en' ? 'EN / ja' : 'en / JA' ]]
+    </button>
     <div class="glass rounded-3xl p-8 sm:p-12 shadow-2xl flex flex-col items-center relative overflow-hidden">
       <!-- 装飾用のミニマルヘッダー -->
       <div class="w-full flex justify-between items-center mb-10 text-xs tracking-widest text-slate-500 font-semibold uppercase">
-        <span>Tool // Live Clock</span>
+        <span>[[ t('tool_name') ]]</span>
         <div class="flex gap-3">
           <button @click="setTheme('teal')" class="w-3.5 h-3.5 rounded-full bg-teal-400 border border-transparent hover:scale-110 transition" :class="{'border-white': theme === 'teal'}"></button>
           <button @click="setTheme('blue')" class="w-3.5 h-3.5 rounded-full bg-blue-500 border border-transparent hover:scale-110 transition" :class="{'border-white': theme === 'blue'}"></button>
@@ -85,7 +89,7 @@
 
   <script>
     (() => {
-      const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+      const { createApp, ref, computed, onMounted, onUnmounted, watchEffect } = Vue;
 
       createApp({
         compilerOptions: { delimiters: ['[[', ']]'] },
@@ -94,12 +98,52 @@
           const theme = ref('teal');
           let timer = null;
 
+          // i18n
+          const currentLang = ref('en');
+          const translations = ref({});
+
+          const loadLang = () => {
+            const saved = localStorage.getItem('preferred-lang');
+            if (saved) {
+              currentLang.value = saved;
+            } else if (navigator.language && navigator.language.startsWith('ja')) {
+              currentLang.value = 'ja';
+            } else {
+              currentLang.value = 'en';
+            }
+          };
+
+          const t = (key) => {
+            if (!translations.value || !translations.value[currentLang.value]) return key;
+            return translations.value[currentLang.value][key] || key;
+          };
+
+          const toggleLang = () => {
+            currentLang.value = currentLang.value === 'en' ? 'ja' : 'en';
+            localStorage.setItem('preferred-lang', currentLang.value);
+          };
+
           const updateTime = () => {
             now.value = new Date();
           };
 
-          onMounted(() => {
+          onMounted(async () => {
+            loadLang();
+            try {
+              const res = await fetch('./i18n.json');
+              const data = await res.json();
+              translations.value = data;
+            } catch (e) {
+              console.error('Failed to load i18n.json', e);
+            }
             timer = setInterval(updateTime, 250);
+          });
+
+          watchEffect(() => {
+            if (translations.value && translations.value[currentLang.value]) {
+              document.title = t('page_title');
+              document.documentElement.lang = currentLang.value;
+            }
           });
 
           onUnmounted(() => {
@@ -117,7 +161,7 @@
           });
 
           const period = computed(() => {
-            return now.value.getHours() >= 12 ? 'PM' : 'AM';
+            return now.value.getHours() >= 12 ? t('pm') : t('am');
           });
 
           const dateString = computed(() => {
@@ -125,8 +169,8 @@
             const m = String(now.value.getMonth() + 1).padStart(2, '0');
             const d = String(now.value.getDate()).padStart(2, '0');
             
-            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-            const dayName = days[now.value.getDay()];
+            const daysKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const dayName = t(daysKeys[now.value.getDay()]);
             
             return `${y}-${m}-${d} // ${dayName}`;
           });
@@ -154,6 +198,9 @@
           });
 
           return {
+            t,
+            currentLang,
+            toggleLang,
             timeString,
             seconds,
             period,

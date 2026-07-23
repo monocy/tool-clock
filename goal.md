@@ -16,7 +16,7 @@ Build, refine, and verify the standalone frontend tool with full internationaliz
 
 ## Acceptance criteria
 
-- [ ] Standalone Playwright smoke test PASS
-- [ ] i18n.json file is created and loaded dynamically
-- [ ] Translation helper `t` is implemented and active for all UI strings
-- [ ] Language switching button is functional and state persists in localStorage
+- [x] Standalone Playwright smoke test PASS
+- [x] i18n.json file is created and loaded dynamically
+- [x] Translation helper `t` is implemented and active for all UI strings
+- [x] Language switching button is functional and state persists in localStorage

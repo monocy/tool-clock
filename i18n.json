@@ -1,0 +1,28 @@
+{
+  "en": {
+    "page_title": "Premium Clock - Free Web Tools",
+    "tool_name": "Tool // Live Clock",
+    "sun": "SUN",
+    "mon": "MON",
+    "tue": "TUE",
+    "wed": "WED",
+    "thu": "THU",
+    "fri": "FRI",
+    "sat": "SAT",
+    "am": "AM",
+    "pm": "PM"
+  },
+  "ja": {
+    "page_title": "プレミアム時計 - 無料ウェブツール",
+    "tool_name": "ツール // ライブクロック",
+    "sun": "日",
+    "mon": "月",
+    "tue": "火",
+    "wed": "水",
+    "thu": "木",
+    "fri": "金",
+    "sat": "土",
+    "am": "午前",
+    "pm": "午後"
+  }
+}
