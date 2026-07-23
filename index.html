@@ -117,13 +117,6 @@
       
       <!-- Top Action Controls -->
       <div class="flex items-center gap-3">
-        <!-- Fullscreen Switcher -->
-        <button @click="toggleFullscreen" 
-                class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-700/50 bg-slate-900/60 text-slate-400 hover:text-white hover:border-cyan-500/40 transition duration-300"
-                :title="isFullscreen ? t('fullscreen_exit') : t('fullscreen_enter')">
-          <i :class="isFullscreen ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
-        </button>
-        
         <!-- Settings Gear Toggle Button -->
         <button @click="isSettingsOpen = true" 
                 class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-700/50 bg-slate-900/60 text-slate-400 hover:text-white hover:border-cyan-500/40 transition duration-300">
@@ -262,6 +255,13 @@
                      class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500">
             </div>
           </div>
+          
+          <!-- 4. Fullscreen Control -->
+          <button @click="toggleFullscreen" class="w-full py-2.5 rounded-xl bg-slate-900/60 border border-slate-700/50 text-sm font-semibold text-slate-300 hover:text-white hover:border-cyan-500/40 transition duration-300 flex items-center justify-center gap-2 mt-4">
+            <i :class="isFullscreen ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i> 
+            <span v-if="!isFullscreen">[[ t('fullscreen_enter') ]]</span>
+            <span v-else>[[ t('fullscreen_exit') ]]</span>
+          </button>
         </div>
 
         <!-- Dialog Footer Action Controls -->
