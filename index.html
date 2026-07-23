@@ -1,154 +1,418 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Premium Clock - Free Web Tools</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Outfit:wght@300;600;900&display=swap" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Outfit', sans-serif;
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            neonBlue: '#00f0ff',
+            neonGreen: '#39ff14',
+            neonPurple: '#d300ff',
+            neonRed: '#ff073a',
+            slateDark: '#0b0f19'
+          }
+        }
+      }
     }
+  </script>
+  
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-card: rgba(15, 23, 42, 0.45);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent-glow: rgba(0, 240, 255, 0.2);
+      --accent-color: #00f0ff;
+      --accent-glow-intensity: 0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3);
+    }
+    
+    .theme-light {
+      --bg-primary: #f8fafc;
+      --bg-card: rgba(255, 255, 255, 0.65);
+      --border-color: rgba(15, 23, 42, 0.08);
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --accent-color: #3b82f6;
+      --accent-glow-intensity: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+
+    .theme-neon {
+      --bg-primary: #020205;
+      --bg-card: rgba(0, 0, 0, 0.7);
+      --border-color: rgba(211, 0, 255, 0.25);
+      --text-main: #00f0ff;
+      --text-muted: #8b5cf6;
+      --accent-glow: rgba(211, 0, 255, 0.45);
+      --accent-color: #d300ff;
+      --accent-glow-intensity: 0 0 10px rgba(211, 0, 255, 0.5), 0 0 20px rgba(211, 0, 255, 0.3);
+    }
+    
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      font-family: 'Outfit', sans-serif;
+      transition: background-color 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+    }
+    
     .font-mono-custom {
       font-family: 'Share Tech Mono', monospace;
     }
-    .glass {
-      background: rgba(30, 41, 59, 0.45);
+
+    .glass-panel {
+      background: var(--bg-card);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
     }
-    .neon-glow {
-      text-shadow: 0 0 10px rgba(20, 184, 166, 0.5), 0 0 20px rgba(20, 184, 166, 0.3);
+    
+    .neon-shadow {
+      box-shadow: 0 0 20px var(--accent-glow);
     }
-    .neon-glow-blue {
-      text-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(59, 130, 246, 0.3);
-    }
-    .neon-glow-rose {
-      text-shadow: 0 0 10px rgba(244, 63, 94, 0.5), 0 0 20px rgba(244, 63, 94, 0.3);
-    }
+
+    [v-cloak] { display: none; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col items-center justify-center p-4 overflow-hidden relative">
-  <!-- 背景グラデーション球 -->
-  <div class="absolute w-[500px] h-[500px] rounded-full bg-teal-500/10 blur-[120px] top-[-10%] left-[-10%] pointer-events-none"></div>
-  <div class="absolute w-[600px] h-[600px] rounded-full bg-blue-600/10 blur-[130px] bottom-[-20%] right-[-10%] pointer-events-none"></div>
+<body class="min-h-screen relative overflow-hidden flex flex-col justify-between" id="theme-root">
 
-  <div id="app" v-cloak class="w-full max-w-2xl z-10">
-    <!-- Premium Language Toggle Button -->
-    <button @click="toggleLang" class="absolute top-6 right-6 z-50 glass px-4 py-1.5 rounded-full text-xs font-semibold tracking-widest text-slate-300 hover:text-white hover:bg-slate-800/50 transition-all duration-300 border border-slate-700/50">
-      [[ currentLang === 'en' ? 'EN / ja' : 'en / JA' ]]
-    </button>
-    <div class="glass rounded-3xl p-8 sm:p-12 shadow-2xl flex flex-col items-center relative overflow-hidden">
-      <!-- 装飾用のミニマルヘッダー -->
-      <div class="w-full flex justify-between items-center mb-10 text-xs tracking-widest text-slate-500 font-semibold uppercase">
-        <span>[[ t('tool_name') ]]</span>
-        <div class="flex gap-3">
-          <button @click="setTheme('teal')" class="w-3.5 h-3.5 rounded-full bg-teal-400 border border-transparent hover:scale-110 transition" :class="{'border-white': theme === 'teal'}"></button>
-          <button @click="setTheme('blue')" class="w-3.5 h-3.5 rounded-full bg-blue-500 border border-transparent hover:scale-110 transition" :class="{'border-white': theme === 'blue'}"></button>
-          <button @click="setTheme('rose')" class="w-3.5 h-3.5 rounded-full bg-rose-500 border border-transparent hover:scale-110 transition" :class="{'border-white': theme === 'rose'}"></button>
+  <div id="app" v-cloak class="min-h-screen w-full flex flex-col justify-between relative z-10">
+    
+    <!-- Dynamic Background Image Layer -->
+    <div class="absolute inset-0 pointer-events-none transition-all duration-500 z-0 bg-cover bg-center"
+         :style="{ 
+           backgroundImage: settings.bgUrl ? 'url(' + settings.bgUrl + ')' : 'none',
+           opacity: settings.bgOpacity,
+           filter: 'blur(' + settings.bgBlur + 'px)'
+         }">
+    </div>
+
+    <!-- Header Navigation -->
+    <header class="relative z-10 w-full px-6 py-4 flex justify-between items-center glass-panel border-b">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold shadow-md shadow-cyan-500/20">
+          <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-wider uppercase bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent">
+            [[ t('tool_title') ]]
+          </h1>
+          <span class="text-[9px] font-bold text-slate-500 font-mono tracking-widest">// STANDALONE TOOL</span>
         </div>
       </div>
+      
+      <!-- Top Action Controls -->
+      <div class="flex items-center gap-3">
+        <!-- Fullscreen Switcher -->
+        <button @click="toggleFullscreen" 
+                class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-700/50 bg-slate-900/60 text-slate-400 hover:text-white hover:border-cyan-500/40 transition duration-300"
+                :title="isFullscreen ? t('fullscreen_exit') : t('fullscreen_enter')">
+          <i :class="isFullscreen ? 'fa-solid fa-compress' : 'fa-solid fa-expand'"></i>
+        </button>
+        
+        <!-- Settings Gear Toggle Button -->
+        <button @click="isSettingsOpen = true" 
+                class="w-10 h-10 rounded-xl flex items-center justify-center border border-slate-700/50 bg-slate-900/60 text-slate-400 hover:text-white hover:border-cyan-500/40 transition duration-300">
+          <i class="fa-solid fa-gear animate-spin-slow"></i>
+        </button>
+      </div>
+    </header>
 
-      <!-- メインの時計表示 -->
-      <div class="flex flex-col items-center select-none">
-        <!-- 日付 -->
-        <div class="text-sm sm:text-base font-semibold tracking-[0.25em] text-slate-400 uppercase mb-3">
-          [[ dateString ]]
+    <!-- Main Workspace Container -->
+    <main class="relative z-10 w-full max-w-4xl mx-auto flex-grow flex flex-col items-center justify-center px-6 py-12">
+      <!-- Clock Main Panel -->
+      <div class="w-full glass-panel p-8 sm:p-12 rounded-3xl neon-shadow flex flex-col items-center relative overflow-hidden max-w-2xl">
+        <!-- Minimal Decor Header -->
+        <div class="w-full flex justify-between items-center mb-10 text-[10px] tracking-widest text-slate-500 font-semibold uppercase">
+          <span>[[ t('tool_name') ]]</span>
+          <span class="font-mono">// LIVE STATE</span>
         </div>
 
-        <!-- デジタル時間 -->
-        <div class="text-6xl sm:text-8xl font-black font-mono-custom tracking-wider tabular-nums leading-none transition duration-300"
-             :class="themeGlowClass">
-          [[ timeString ]]
+        <!-- Clock Face -->
+        <div class="flex flex-col items-center select-none">
+          <!-- Date -->
+          <div class="text-sm sm:text-base font-semibold tracking-[0.25em] text-slate-400 uppercase mb-3">
+            [[ dateString ]]
+          </div>
+          <!-- Digital Time -->
+          <div class="text-6xl sm:text-8xl font-black font-mono-custom tracking-wider tabular-nums leading-none transition duration-300"
+               :style="{ color: 'var(--accent-color)', textShadow: 'var(--accent-glow-intensity)' }">
+            [[ timeString ]]
+          </div>
+          <!-- AM/PM & Seconds -->
+          <div class="flex items-center gap-3 mt-4">
+            <span class="text-xs sm:text-sm font-bold tracking-[0.3em] uppercase px-3 py-1 bg-slate-900/80 rounded-md border border-slate-800 text-slate-400">
+              [[ period ]]
+            </span>
+            <span class="text-lg sm:text-xl font-bold font-mono-custom tabular-nums text-slate-500">
+              : [[ seconds ]]
+            </span>
+          </div>
         </div>
 
-        <!-- AM/PM & 秒 -->
-        <div class="flex items-center gap-3 mt-4">
-          <span class="text-xs sm:text-sm font-bold tracking-[0.3em] uppercase px-3 py-1 bg-slate-900/80 rounded-md border border-slate-800 text-slate-400">
-            [[ period ]]
-          </span>
-          <span class="text-lg sm:text-xl font-bold font-mono-custom tabular-nums text-slate-500">
-            : [[ seconds ]]
-          </span>
+        <!-- Progress Indicator -->
+        <div class="w-full bg-slate-900/50 h-1.5 mt-10 rounded-full overflow-hidden border border-slate-900/50">
+          <div class="h-full bg-[var(--accent-color)] transition-all duration-100 ease-linear shadow-[0_0_10px_var(--accent-color)]"
+               :style="{ width: progressPercent + '%' }"></div>
         </div>
       </div>
+    </main>
 
-      <!-- 装飾用のアナログ風プログレス (秒の進行状況) -->
-      <div class="w-full bg-slate-900/50 h-1 mt-10 rounded-full overflow-hidden border border-slate-900/50">
-        <div class="h-full bg-gradient-to-r transition-all duration-100 ease-linear"
-             :class="themeBarClass"
-             :style="{ width: progressPercent + '%' }"></div>
+    <!-- Footer Controls -->
+    <footer class="relative z-10 w-full px-6 py-4 flex justify-between items-center glass-panel border-t text-xs" style="color: var(--text-muted);">
+      <div>&copy; 2026 Free Web Tools Project.</div>
+      <div class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="font-mono uppercase text-[10px]">Active Node</span>
+      </div>
+    </footer>
+
+    <!-- Customizer Settings Overlay Dialog -->
+    <div v-if="isSettingsOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all duration-300">
+      <div class="w-full max-w-md glass-panel rounded-3xl overflow-hidden shadow-2xl relative">
+        <!-- Dialog Header -->
+        <div class="px-6 py-4 border-b border-slate-800/50 flex justify-between items-center bg-slate-900/40">
+          <div class="flex items-center gap-2 text-cyan-400">
+            <i class="fa-solid fa-sliders"></i>
+            <h3 class="font-bold">[[ t('settings_title') ]]</h3>
+          </div>
+          <button @click="closeSettings" class="text-slate-500 hover:text-white transition duration-200">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+        
+        <!-- Dialog Scrollable Content -->
+        <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+          <!-- 1. Language Toggle -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400">[[ t('lang_label') ]]</label>
+            <div class="grid grid-cols-2 gap-2 bg-slate-950/50 p-1 rounded-xl border border-slate-800">
+              <button @click="setLang('en')" 
+                      :class="settings.lang === 'en' ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20' : 'text-slate-400 hover:text-white'"
+                      class="py-2 px-3 rounded-lg text-sm transition duration-200">
+                English
+              </button>
+              <button @click="setLang('ja')" 
+                      :class="settings.lang === 'ja' ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20' : 'text-slate-400 hover:text-white'"
+                      class="py-2 px-3 rounded-lg text-sm transition duration-200">
+                日本語
+              </button>
+            </div>
+          </div>
+
+          <!-- 2. Theme Selection -->
+          <div class="space-y-2">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400">[[ t('theme_label') ]]</label>
+            <div class="grid grid-cols-3 gap-2 bg-slate-950/50 p-1 rounded-xl border border-slate-800">
+              <button @click="setTheme('dark')" 
+                      :class="settings.theme === 'dark' ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20' : 'text-slate-400 hover:text-white'"
+                      class="py-2 px-1 rounded-lg text-xs transition duration-200">
+                [[ t('theme_dark') ]]
+              </button>
+              <button @click="setTheme('light')" 
+                      :class="settings.theme === 'light' ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20' : 'text-slate-400 hover:text-white'"
+                      class="py-2 px-1 rounded-lg text-xs transition duration-200">
+                [[ t('theme_light') ]]
+              </button>
+              <button @click="setTheme('neon')" 
+                      :class="settings.theme === 'neon' ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20' : 'text-slate-400 hover:text-white'"
+                      class="py-2 px-1 rounded-lg text-xs transition duration-200">
+                [[ t('theme_neon') ]]
+              </button>
+            </div>
+          </div>
+
+          <!-- 3. Background Customizer -->
+          <div class="space-y-4 pt-2 border-t border-slate-800/40">
+            <div class="space-y-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-400">[[ t('bg_url_label') ]]</label>
+              <input type="text" v-model="settings.bgUrl" placeholder="https://example.com/image.jpg"
+                     class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-cyan-500 transition">
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-400">[[ t('bg_opacity_label') ]]</label>
+                <span class="text-xs font-mono text-cyan-400">[[ Math.round(settings.bgOpacity * 100) ]]%</span>
+              </div>
+              <input type="range" min="0" max="0.8" step="0.05" v-model.number="settings.bgOpacity"
+                     class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between items-center">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-400">[[ t('bg_blur_label') ]]</label>
+                <span class="text-xs font-mono text-cyan-400">[[ settings.bgBlur ]]px</span>
+              </div>
+              <input type="range" min="0" max="24" step="1" v-model.number="settings.bgBlur"
+                     class="w-full h-1.5 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dialog Footer Action Controls -->
+        <div class="px-6 py-4 border-t border-slate-800/50 flex justify-between bg-slate-900/20">
+          <button @click="resetToDefault" class="text-xs text-rose-400 font-semibold hover:text-rose-300 transition duration-200">
+            <i class="fa-solid fa-rotate-left mr-1"></i> [[ t('reset') ]]
+          </button>
+          <div class="flex gap-2">
+            <button @click="closeSettings" class="px-4 py-2 rounded-xl bg-cyan-500 text-slate-950 font-bold hover:bg-cyan-400 transition duration-200">
+              [[ t('save_settings') ]]
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
+
   </div>
 
   <script>
     (() => {
-      const { createApp, ref, computed, onMounted, onUnmounted, watchEffect } = Vue;
+      const { createApp, ref, reactive, computed, onMounted, onUnmounted, watch } = Vue;
+
+      const DEFAULT_SETTINGS = {
+        lang: 'en',
+        theme: 'dark',
+        bgUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
+        bgOpacity: 0.15,
+        bgBlur: 8,
+        custom: {}
+      };
 
       createApp({
         compilerOptions: { delimiters: ['[[', ']]'] },
         setup() {
+          const isSettingsOpen = ref(false);
+          const isFullscreen = ref(false);
+          const translations = ref({});
+          const settings = reactive({ ...DEFAULT_SETTINGS });
+
+          // Clock specific variables
           const now = ref(new Date());
-          const theme = ref('teal');
           let timer = null;
 
-          // i18n
-          const currentLang = ref('en');
-          const translations = ref({});
-
-          const loadLang = () => {
-            const saved = localStorage.getItem('preferred-lang');
-            if (saved) {
-              currentLang.value = saved;
-            } else if (navigator.language && navigator.language.startsWith('ja')) {
-              currentLang.value = 'ja';
-            } else {
-              currentLang.value = 'en';
+          const loadTranslations = async () => {
+            try {
+              const res = await fetch('./i18n.json');
+              translations.value = await res.json();
+              updateDocumentMetadata();
+            } catch (e) {
+              console.error("Failed to load local translations", e);
             }
           };
 
           const t = (key) => {
-            if (!translations.value || !translations.value[currentLang.value]) return key;
-            return translations.value[currentLang.value][key] || key;
+            const currentLang = settings.lang;
+            return translations.value[currentLang]?.[key] || translations.value['en']?.[key] || key;
           };
 
-          const toggleLang = () => {
-            currentLang.value = currentLang.value === 'en' ? 'ja' : 'en';
-            localStorage.setItem('preferred-lang', currentLang.value);
+          const updateDocumentMetadata = () => {
+            document.title = t('page_title');
+            document.documentElement.lang = settings.lang;
           };
 
+          const applyTheme = (themeName) => {
+            const root = document.getElementById('theme-root');
+            if (!root) return;
+            
+            root.className = 'min-h-screen relative overflow-hidden flex flex-col justify-between';
+            
+            if (themeName === 'light') {
+              root.classList.add('theme-light');
+              root.classList.remove('dark');
+            } else if (themeName === 'neon') {
+              root.classList.add('theme-neon');
+              root.classList.add('dark');
+            } else {
+              root.classList.add('dark');
+            }
+          };
+
+          const setTheme = (themeName) => {
+            settings.theme = themeName;
+            applyTheme(themeName);
+            saveSettingsToStorage();
+          };
+
+          const setLang = (langCode) => {
+            settings.lang = langCode;
+            saveSettingsToStorage();
+            updateDocumentMetadata();
+          };
+
+          const loadSettingsFromStorage = () => {
+            const stored = localStorage.getItem('tool-settings');
+            if (stored) {
+              try {
+                const parsed = JSON.parse(stored);
+                const customMerged = { ...DEFAULT_SETTINGS.custom, ...parsed.custom };
+                Object.assign(settings, parsed);
+                settings.custom = reactive(customMerged);
+              } catch (e) {
+                console.error("Failed to parse stored settings", e);
+              }
+            } else {
+              const browserLang = navigator.language || '';
+              settings.lang = browserLang.startsWith('ja') ? 'ja' : 'en';
+            }
+            applyTheme(settings.theme);
+          };
+
+          const saveSettingsToStorage = () => {
+            localStorage.setItem('tool-settings', JSON.stringify(settings));
+          };
+
+          const closeSettings = () => {
+            isSettingsOpen.value = false;
+            saveSettingsToStorage();
+          };
+
+          const resetToDefault = () => {
+            Object.assign(settings, DEFAULT_SETTINGS);
+            const browserLang = navigator.language || '';
+            settings.lang = browserLang.startsWith('ja') ? 'ja' : 'en';
+            applyTheme(settings.theme);
+            saveSettingsToStorage();
+            updateDocumentMetadata();
+          };
+
+          const toggleFullscreen = () => {
+            if (!document.fullscreenElement) {
+              document.documentElement.requestFullscreen().then(() => {
+                isFullscreen.value = true;
+              }).catch((err) => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+              });
+            } else {
+              document.exitFullscreen().then(() => {
+                isFullscreen.value = false;
+              });
+            }
+          };
+
+          document.addEventListener('fullscreenchange', () => {
+            isFullscreen.value = !!document.fullscreenElement;
+          });
+
+          // Clock specific functions
           const updateTime = () => {
             now.value = new Date();
           };
-
-          onMounted(async () => {
-            loadLang();
-            try {
-              const res = await fetch('./i18n.json');
-              const data = await res.json();
-              translations.value = data;
-            } catch (e) {
-              console.error('Failed to load i18n.json', e);
-            }
-            timer = setInterval(updateTime, 250);
-          });
-
-          watchEffect(() => {
-            if (translations.value && translations.value[currentLang.value]) {
-              document.title = t('page_title');
-              document.documentElement.lang = currentLang.value;
-            }
-          });
-
-          onUnmounted(() => {
-            if (timer) clearInterval(timer);
-          });
 
           const timeString = computed(() => {
             const h = String(now.value.getHours()).padStart(2, '0');
@@ -181,35 +445,36 @@
             return ((sec + ms / 1000) / 60) * 100;
           });
 
-          const setTheme = (color) => {
-            theme.value = color;
-          };
-
-          const themeGlowClass = computed(() => {
-            if (theme.value === 'blue') return 'text-blue-500 neon-glow-blue';
-            if (theme.value === 'rose') return 'text-rose-500 neon-glow-rose';
-            return 'text-teal-400 neon-glow';
+          // Watch lang changes to reactively update document details
+          watch(() => settings.lang, () => {
+            updateDocumentMetadata();
           });
 
-          const themeBarClass = computed(() => {
-            if (theme.value === 'blue') return 'from-blue-600 to-indigo-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]';
-            if (theme.value === 'rose') return 'from-rose-600 to-pink-500 shadow-[0_0_10px_rgba(244,63,94,0.5)]';
-            return 'from-teal-500 to-emerald-400 shadow-[0_0_10px_rgba(20,184,166,0.5)]';
+          onMounted(() => {
+            loadTranslations();
+            loadSettingsFromStorage();
+            timer = setInterval(updateTime, 250);
+          });
+
+          onUnmounted(() => {
+            if (timer) clearInterval(timer);
           });
 
           return {
+            isSettingsOpen,
+            isFullscreen,
+            settings,
             t,
-            currentLang,
-            toggleLang,
+            setTheme,
+            setLang,
+            closeSettings,
+            resetToDefault,
+            toggleFullscreen,
             timeString,
             seconds,
             period,
             dateString,
-            progressPercent,
-            theme,
-            setTheme,
-            themeGlowClass,
-            themeBarClass
+            progressPercent
           };
         }
       }).mount('#app');
