@@ -166,23 +166,12 @@
         components: { SettingsModal, BackgroundModal },
         compilerOptions: { delimiters: ['[[', ']]'] },
         setup() {
-          const translations = ref({});
-          const portal = usePortalCommon(translations, (typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.custom) || {});
-          const { settings, showSettings: isSettingsOpen, isBgModalOpen, isFullscreen, t, toggleFullscreen } = portal;
+          const portal = usePortalCommon((typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.custom) || {});
+          const { settings, showSettings: isSettingsOpen, isBgModalOpen, isFullscreen, translations, t, toggleFullscreen } = portal;
 
           // Clock specific variables
           const now = ref(new Date());
           let timer = null;
-
-          const loadTranslations = async () => {
-            try {
-              const res = await fetch('./i18n.json');
-              translations.value = await res.json();
-              updateDocumentMetadata();
-            } catch (e) {
-              console.error("Failed to load local translations", e);
-            }
-          };
 
           const updateDocumentMetadata = () => {
             document.title = t('page_title');
@@ -205,7 +194,8 @@
           const setLang = (langCode) => {
             settings.lang = langCode;
           };
-// Clock specific functions
+
+          // Clock specific functions
           const updateTime = () => {
             now.value = new Date();
           };
@@ -228,11 +218,9 @@
             const y = now.value.getFullYear();
             const m = String(now.value.getMonth() + 1).padStart(2, '0');
             const d = String(now.value.getDate()).padStart(2, '0');
-            
-            const daysKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-            const dayName = t(daysKeys[now.value.getDay()]);
-            
-            return `${y}-${m}-${d} // ${dayName}`;
+            const dayNames = [t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')];
+            const day = dayNames[now.value.getDay()];
+            return `${y}/${m}/${d} (${day})`;
           });
 
           const progressPercent = computed(() => {
@@ -241,14 +229,12 @@
             return ((sec + ms / 1000) / 60) * 100;
           });
 
-          // Watch lang changes to reactively update document details
-          watch(() => settings.lang, () => {
+          // Watch translations and lang changes to reactively update document details
+          watch([translations, () => settings.lang], () => {
             updateDocumentMetadata();
-          });
+          }, { deep: true, immediate: true });
 
           onMounted(() => {
-            loadTranslations();
-            
             timer = setInterval(updateTime, 250);
           });
 
@@ -261,6 +247,7 @@
             isBgModalOpen,
             isFullscreen,
             settings,
+            translations,
             t,
             setTheme,
             setLang,
