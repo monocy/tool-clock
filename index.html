@@ -45,7 +45,6 @@
     })();
   </script>
   <script>
-
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -61,14 +60,10 @@
       }
     }
   </script>
-  
-  
   <style>
-
     .font-mono-custom {
       font-family: 'Share Tech Mono', monospace;
     }
-
   </style>
 </head>
 <body class="bg-[var(--bg-primary)] text-[var(--text-main)] min-h-screen relative overflow-hidden flex flex-col justify-between transition-colors duration-300" id="theme-root">
@@ -96,38 +91,7 @@
 
     <!-- Main Workspace Container -->
     <main class="relative z-10 w-full max-w-4xl mx-auto flex-grow flex flex-col items-center justify-center px-6 py-12">
-      <!-- Clock Main Panel -->
-      <div class="w-full glass-panel p-8 sm:p-12 rounded-3xl neon-shadow flex flex-col items-center relative overflow-hidden max-w-2xl">
-        
-
-        <!-- Clock Face -->
-        <div class="flex flex-col items-center select-none">
-          <!-- Date -->
-          <div class="text-sm sm:text-base font-semibold tracking-[0.25em] text-[var(--text-muted)] uppercase mb-3">
-            [[ dateString ]]
-          </div>
-          <!-- Digital Time -->
-          <div class="text-6xl sm:text-8xl font-black font-mono-custom tracking-wider tabular-nums leading-none transition duration-300"
-               :style="{ color: 'var(--accent-color)', textShadow: 'var(--accent-glow-intensity)' }">
-            [[ timeString ]]
-          </div>
-          <!-- AM/PM & Seconds -->
-          <div class="flex items-center gap-3 mt-4">
-            <span class="text-xs sm:text-sm font-bold tracking-[0.3em] uppercase px-3 py-1 bg-[var(--bg-card)] rounded-md border border-[var(--border-color)] text-[var(--text-muted)]">
-              [[ period ]]
-            </span>
-            <span class="text-lg sm:text-xl font-bold font-mono-custom tabular-nums text-[var(--text-muted)]">
-              : [[ seconds ]]
-            </span>
-          </div>
-        </div>
-
-        <!-- Progress Indicator -->
-        <div class="w-full bg-[var(--bg-card)] h-1.5 mt-10 rounded-full overflow-hidden border border-slate-900/50">
-          <div class="h-full bg-[var(--accent-color)] transition-all duration-100 ease-linear shadow-[0_0_10px_var(--accent-color)]"
-               :style="{ width: progressPercent + '%' }"></div>
-        </div>
-      </div>
+      <tool-workspace v-if="translations" :settings="settings" :translations="translations"></tool-workspace>
     </main>
 
     <!-- Footer Controls -->
@@ -140,7 +104,6 @@
       @toggle-fullscreen="toggleFullscreen"
     ></portal-controls>
 
-    <!-- Settings Modal Component -->
     <!-- Settings Modal Component -->
     <settings-modal 
       :settings="settings" 
@@ -158,128 +121,83 @@
       :is-open="isBgModalOpen" 
       @close="isBgModalOpen = false"
     ></background-modal>
-<script>
 
+  </div>
+
+  <script src="./js/workspace.js"></script>
+  <script>
     window.addEventListener('common-assets-loaded', () => {
       (() => {
-        const { createApp, ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } = Vue;
+        const { createApp, ref, reactive, watch } = Vue;
 
-      const DEFAULT_SETTINGS = {
-        lang: 'en',
-        theme: 'dark',
-        bgUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
-        bgOpacity: 0.15,
-        bgBlur: 8,
-        custom: {}
-      };
+        const DEFAULT_SETTINGS = {
+          lang: 'en',
+          theme: 'dark',
+          bgUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop',
+          bgOpacity: 0.15,
+          bgBlur: 8,
+          custom: {}
+        };
 
-      createApp({
-        components: { SettingsModal, BackgroundModal,
-          PortalHeader,
-          PortalFooter,
-          PortalControls
-        },
-        compilerOptions: { delimiters: ['[[', ']]'] },
-        setup() {
-          const portal = usePortalCommon((typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.custom) || {});
-          const { settings, showSettings: isSettingsOpen, isBgModalOpen, isFullscreen, translations, t, toggleFullscreen, toggleTheme } = portal;
+        createApp({
+          components: {
+            SettingsModal,
+            BackgroundModal,
+            ToolWorkspace,
+            PortalHeader,
+            PortalFooter,
+            PortalControls
+          },
+          compilerOptions: { delimiters: ['[[', ']]'] },
+          setup() {
+            const portal = usePortalCommon((typeof DEFAULT_SETTINGS !== 'undefined' && DEFAULT_SETTINGS.custom) || {});
+            const { settings, showSettings: isSettingsOpen, isBgModalOpen, isFullscreen, translations, t, toggleFullscreen, toggleTheme } = portal;
 
-          // Clock specific variables
-          const now = ref(new Date());
-          let timer = null;
+            const originalTitle = document.title;
+            const updateDocumentMetadata = () => {
+              const pageTitle = t('page_title');
+              document.title = (pageTitle === 'page_title' || !pageTitle) ? originalTitle : pageTitle;
+              document.documentElement.lang = settings.lang;
+            };
 
-          const originalTitle = document.title;
-          const updateDocumentMetadata = () => {
-            const pageTitle = t('page_title');
-            document.title = (pageTitle === 'page_title' || !pageTitle) ? originalTitle : pageTitle;
-            document.documentElement.lang = settings.lang;
-          };
+            const closeSettings = () => {
+              isSettingsOpen.value = false;
+            };
 
-          const closeSettings = () => {
-            isSettingsOpen.value = false;
-          };
+            const resetToDefault = () => {
+              portal.resetSettings();
+              updateDocumentMetadata();
+            };
 
-          const resetToDefault = () => {
-            portal.resetSettings();
-            updateDocumentMetadata();
-          };
+            const setTheme = (themeName) => {
+              settings.theme = themeName;
+            };
 
-          const setTheme = (themeName) => {
-            settings.theme = themeName;
-          };
+            const setLang = (langCode) => {
+              settings.lang = langCode;
+            };
 
-          const setLang = (langCode) => {
-            settings.lang = langCode;
-          };
+            // Watch translations and lang changes to reactively update document details
+            watch([translations, () => settings.lang], () => {
+              updateDocumentMetadata();
+            }, { deep: true, immediate: true });
 
-          // Clock specific functions
-          const updateTime = () => {
-            now.value = new Date();
-          };
-
-          const timeString = computed(() => {
-            const h = String(now.value.getHours()).padStart(2, '0');
-            const m = String(now.value.getMinutes()).padStart(2, '0');
-            return `${h}:${m}`;
-          });
-
-          const seconds = computed(() => {
-            return String(now.value.getSeconds()).padStart(2, '0');
-          });
-
-          const period = computed(() => {
-            return now.value.getHours() >= 12 ? t('pm') : t('am');
-          });
-
-          const dateString = computed(() => {
-            const y = now.value.getFullYear();
-            const m = String(now.value.getMonth() + 1).padStart(2, '0');
-            const d = String(now.value.getDate()).padStart(2, '0');
-            const dayNames = [t('sun'), t('mon'), t('tue'), t('wed'), t('thu'), t('fri'), t('sat')];
-            const day = dayNames[now.value.getDay()];
-            return `${y}/${m}/${d} (${day})`;
-          });
-
-          const progressPercent = computed(() => {
-            const sec = now.value.getSeconds();
-            const ms = now.value.getMilliseconds();
-            return ((sec + ms / 1000) / 60) * 100;
-          });
-
-          // Watch translations and lang changes to reactively update document details
-          watch([translations, () => settings.lang], () => {
-            updateDocumentMetadata();
-          }, { deep: true, immediate: true });
-
-          onMounted(() => {
-            timer = setInterval(updateTime, 250);
-          });
-
-          onUnmounted(() => {
-            if (timer) clearInterval(timer);
-          });
-
-          return {
-            isSettingsOpen,
-            isBgModalOpen,
-            isFullscreen,
-            settings,
-            translations,
-            t,
-            setTheme,
-            setLang,
-            closeSettings,
-            resetToDefault,
-            toggleFullscreen,
-            timeString,
-            seconds,
-            period,
-            dateString,
-            progressPercent,
-            toggleTheme
-          };
-        }
-      }).mount('#app');
+            return {
+              isSettingsOpen,
+              isBgModalOpen,
+              isFullscreen,
+              settings,
+              translations,
+              t,
+              setTheme,
+              setLang,
+              closeSettings,
+              resetToDefault,
+              toggleFullscreen,
+              toggleTheme
+            };
+          }
+        }).mount('#app');
       })();
     });
   </script>
